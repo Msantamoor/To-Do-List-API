@@ -35,15 +35,86 @@ const { deleteListTasks } = require('./DataAccessLayer.js')
 const { updateListbyID } = require('./DataAccessLayer.js')
 const { updateListAttributes } = require('./DataAccessLayer.js')
 const { deleteTasks } = require('./DataAccessLayer.js')
-
+const { createObject } = require('./DataAccessLayer.js')
+const { createListObj } = require('./DataAccessLayer.js')
+const { createTaskObj } = require('./DataAccessLayer.js')
+const { readListObjects } = require('./DataAccessLayer.js')
+const { readTaskObjects } = require('./DataAccessLayer.js')
+const { updateListObj } = require('./DataAccessLayer.js')
+const { updateTaskObj } = require('./DataAccessLayer.js')
 
 
 app.post('/users', async (req, res) => {
-    const newUser = req.body
-    const user = await createUser(newUser)
-    console.log('A user POST Request was made');
+    const newObject = req.body
+    const user = await createObject(newObject)
+    console.log('Object Created')
     res.send(user)
-});
+})
+
+app.post('/lists', async (req, res) => {
+    const user = req.query.user
+    const newObject = req.body
+    const list = await createListObj(user, newObject)
+    console.log('Object Created')
+    res.send(list)
+})
+
+app.post('/tasks', async (req, res) => {
+    const user = req.query.user
+    const list = req.query.list
+    const newObject = req.body
+    console.log(newObject)
+    const task = await createTaskObj(user, list, newObject)
+    console.log('Object Created')
+    res.send(task)
+})
+
+app.get('/lists', async (req, res) => {
+    const user = req.query.user
+    console.log(user)
+    const lists = await readListObjects(user)
+    console.log('A list GET Request was made');
+    res.send(lists)
+})
+
+app.get('/tasks', async (req, res) =>  {
+    const user = req.query.user
+    const list = req.query.list
+    const tasks = await readTaskObjects(user, list)
+    res.send(tasks)
+})
+
+app.patch('/lists', async(req, res) => {
+    const user = req.query.user
+    const id = req.query.id
+    const list = req.body
+    const update = await updateListObj(user, id, list)
+    res.send(update)
+})
+
+app.patch('/tasks', async(req, res) => {
+    const user = req.query.user
+    const id = req.query.id
+    const listname = req.query.list
+    const task = req.body
+    const update = await updateTaskObj(user, listname, id, task)
+    res.send(update)
+})
+
+//Old Stuff
+
+
+
+
+
+
+
+// app.post('/users', async (req, res) => {
+//     const newUser = req.body
+//     const user = await createUser(newUser)
+//     console.log('A user POST Request was made');
+//     res.send(user)
+// });
 
 app.get('/users-names', async (req,res) => {
     let filter = req.query.username
@@ -68,37 +139,33 @@ app.get('/users-login', async (req, res) => {
     const user = await checkPass(filter)
     console.log(user)
     const match = check(user.data[0].password, pass)
-    res.send(match)
+    if(match === true){
+        res.send(user.data[0]._id)
+    } else if (match === false){
+        res.send('Sign in Failed')
+    }
 })
 
-app.post('/lists', async (req, res) => {
-    const newList = req.body
-    const list = await createList(newList)
-    console.log('A list POST Request was made.');
-    res.send(list);
-})
+// app.post('/lists', async (req, res) => {
+//     const newList = req.body
+//     const list = await createList(newList)
+//     console.log('A list POST Request was made.');
+//     res.send(list);
+// })
 
-app.get('/lists', async (req, res) => {
-    let filter = req.query.user
-    console.log(filter)
-    const lists = await readLists(filter)
-    console.log('A list GET Request was made');
-    res.send(lists)
-})
+// app.patch('/lists', async (req, res) => {
+//     let user = req.query.user
+//     let id = req.query.id
+//     let prevName = req.query.prevName
+//     let list = req.body.list
+//     let nameUpdate = req.body.task
 
-app.patch('/lists', async (req, res) => {
-    let user = req.query.user
-    let id = req.query.id
-    let prevName = req.query.prevName
-    let list = req.body.list
-    let nameUpdate = req.body.task
-
-    await updateListbyID(id, list)
-    console.log('Updated list')
-    await updateListAttributes(user, prevName, nameUpdate)
-    console.log('Updated list attributes')
-    res.send()
-})
+//     await updateListbyID(id, list)
+//     console.log('Updated list')
+//     await updateListAttributes(user, prevName, nameUpdate)
+//     console.log('Updated list attributes')
+//     res.send()
+// })
 
 app.delete('/lists', async (req, res) => {
     let id = req.query.id
@@ -112,32 +179,32 @@ app.delete('/lists', async (req, res) => {
     res.send()
 })
 
-app.post('/tasks', async (req, res) => {
-    const newTask = req.body
-    const task = await createTask(newTask)
-    console.log('A task POST Request was made.');
-    res.send(task)
-})
+// app.post('/tasks', async (req, res) => {
+//     const newTask = req.body
+//     const task = await createTask(newTask)
+//     console.log('A task POST Request was made.');
+//     res.send(task)
+// })
 
-app.get('/tasks', async (req, res) => {
-    let filter1 = req.query.user
-    let filter2 = req.query.list
-    console.log(filter1)
-    console.log(filter2)
-    const tasks = await readTasks(filter1, filter2)
-    console.log('A task GET Request was made');
-    res.send(tasks)
-})
+// app.get('/tasks', async (req, res) => {
+//     let filter1 = req.query.user
+//     let filter2 = req.query.list
+//     console.log(filter1)
+//     console.log(filter2)
+//     const tasks = await readTasks(filter1, filter2)
+//     console.log('A task GET Request was made');
+//     res.send(tasks)
+// })
 
-app.patch('/tasks', async (req, res) => {
-    let id = req.query.id
-    let task = req.body
-    console.log(id)
-    console.log(task)
-    await updateTaskById(id, task)
-    console.log('A PATCH Request was made!');
-    res.send()
-})
+// app.patch('/tasks', async (req, res) => {
+//     let id = req.query.id
+//     let task = req.body
+//     console.log(id)
+//     console.log(task)
+//     await updateTaskById(id, task)
+//     console.log('A PATCH Request was made!');
+//     res.send()
+// })
 
 app.delete('/tasks', async (req, res) => {
     let id = req.query.id

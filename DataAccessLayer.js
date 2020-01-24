@@ -13,6 +13,223 @@ const settings = {
     useNewUrlParser: true
 }
 
+const createObject = (user) => {
+    // Use connect method to connect to the server
+    let iou = new Promise((resolve, reject) => {
+
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            }
+            else {
+                console.log("Connected to server for Creation of lists");
+                const db = client.db(dbName);
+                // Get the lists collection
+                const collection = db.collection('ToDoObjects');
+                // Insert a document
+                collection.insertOne(user, function (err, result) {
+                     if (err) {
+                       reject(err)
+                   }
+                   else {
+                        client.close();
+                        resolve("Inserted a user into the collection");
+                   }
+
+                 });
+            }
+        })
+    });
+    return iou
+}
+
+
+
+const createListObj = (id, list) => {
+    // Use connect method to connect to the server
+    let iou = new Promise((resolve, reject) => {
+
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            }
+            else {
+                console.log("Connected to server for Creation of lists");
+                const db = client.db(dbName);
+                // Get the lists collection
+                const collection = db.collection(`ToDoObjects`);
+                // Insert a document
+                collection.update({_id: ObjectId(id)}, {$push: {lists: list}}, function (err, result) {
+                     if (err) {
+                       reject(err)
+                   }
+                   else {
+                        client.close();
+                        resolve("Inserted a user into the collection");
+                   }
+
+                 });
+            }
+        })
+    });
+    return iou
+}
+
+const createTaskObj = (id, listname, task) => {
+    // Use connect method to connect to the server
+    let iou = new Promise((resolve, reject) => {
+
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            }
+            else {
+                console.log("Connected to server for Creation of lists");
+                const db = client.db(dbName);
+                // Get the lists collection
+                const collection = db.collection(`ToDoObjects`);
+                // Insert a document
+                collection.updateOne({ _id: ObjectId(id), "lists": { "$elemMatch":  { "name": listname}}}, {$push: {"lists.$.tasks": task}}, function (err, result) {
+                     if (err) {
+                       reject(err)
+                   }
+                   else {
+                        client.close();
+                        resolve("Inserted a user into the collection");
+                   }
+
+                 });
+            }
+        })
+    });
+    return iou
+}
+
+const readListObjects = (id) => {
+    let iou = new Promise((resolve, reject) => {
+        // Use connect method to connect to the server
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            } else {
+                console.log("Connected to server Read Lists");
+                const db = client.db(dbName);
+                // Get the tasks collection
+                const collection = db.collection('ToDoObjects');
+                // Find some documents
+                collection.find({ _id: ObjectId(id)}).toArray(function (err, docs) {
+                    if (err) {
+                        reject(err)
+                    } else {
+                        const results = {
+                            data: docs,
+                        }
+
+                        client.close();
+                        resolve(results);
+                    }
+                })
+            }
+        });
+    })
+    return iou;
+}
+
+const readTaskObjects = (id, index) => {
+    let iou = new Promise((resolve, reject) => {
+        // Use connect method to connect to the server
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            } else {
+                console.log("Connected to server Read Tasks");
+                const db = client.db(dbName);
+                // Get the tasks collection
+                const collection = db.collection('ToDoObjects');
+                // Find some documents
+                collection.find({ _id: ObjectId(id)}).toArray(function (err, docs) {
+                    if (err) {
+                        reject(err)
+                    } else {
+                        const results = {
+                            data: docs
+                        }
+
+                        client.close();
+                        resolve(results);
+                    }
+                })
+            }
+        });
+    })
+    return iou;
+}
+
+const updateListObj = (id, listname, list) => {
+    // Use connect method to connect to the server
+    let iou = new Promise((resolve, reject) => {
+
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            }
+            else {
+                console.log("Connected to server for Creation of lists");
+                const db = client.db(dbName);
+                // Get the lists collection
+                const collection = db.collection(`ToDoObjects`);
+                // Insert a document
+                collection.updateOne({ _id: ObjectId(id), "lists": { "$elemMatch":  { "name": listname}}},  {$set: {"lists.$.name": list.name, "lists.$.description": list.description, "lists.$.due": list.due }}, function (err, result) {
+                     if (err) {
+                       reject(err)
+                   }
+                   else {
+                        client.close();
+                        resolve("Inserted a user into the collection");
+                   }
+
+                 });
+            }
+        })
+    });
+    return iou
+}
+
+const updateTaskObj = (user, listname, taskname, task) => {
+    // Use connect method to connect to the server
+    let iou = new Promise((resolve, reject) => {
+
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            }
+            else {
+                console.log("Connected to server for Creation of lists");
+                const db = client.db(dbName);
+                // Get the lists collection
+                const collection = db.collection(`ToDoObjects`);
+                // Insert a document
+                collection.updateOne({
+                                     _id: ObjectId(user)},  
+                                    {$set: {"lists.$[listname].tasks.$[taskname]": task}}, 
+                                    { arrayFilters: [ {"listname.name": listname}, {"taskname.name": taskname} ]
+    
+                                    }, function (err, result) {
+                     if (err) {
+                       reject(err)
+                   }
+                   else {
+                        client.close();
+                        resolve(result);
+                   }
+
+                 });
+            }
+        })
+    });
+    return iou
+}
+
 const testConnection = () => {
     const iou = new Promise((resolve, reject) => {
         // Use connect method to connect to the server
@@ -201,7 +418,7 @@ const checkPass = (username) => {
                 console.log('Connected to server Read tasks');
                 const db = client.db(dbName);
                 // Get the tasks collection
-                const collection = db.collection('ToDoUsers');
+                const collection = db.collection('ToDoObjects');
                 // Find some documents
                 collection.find({ username: username }).toArray(function (err, docs) {
                     if (err) {
@@ -233,7 +450,7 @@ const checkUse = (username) => {
                 console.log('Connected to server Read tasks');
                 const db = client.db(dbName);
                 // Get the tasks collection
-                const collection = db.collection('ToDoUsers');
+                const collection = db.collection('ToDoObjects');
                 // Find some documents
                 collection.find({ username: username }).toArray(function (err, docs) {
                     if (err) {
@@ -262,7 +479,7 @@ const checkEmail = (email) => {
                 console.log('Connected to server Read tasks');
                 const db = client.db(dbName);
                 // Get the tasks collection
-                const collection = db.collection('ToDoUsers');
+                const collection = db.collection('ToDoObjects');
                 // Find some documents
                 collection.find({ email: email }).toArray(function (err, docs) {
                     if (err) {
@@ -540,4 +757,4 @@ const deleteListTasks = (user, list) => {
 };
 
 
-module.exports = { testConnection, createTask, createList, createUser, readTasks, checkComplete, checkPass, checkUse, checkEmail, check, deleteTask, deleteTasks, deleteCompletedTasks, deleteList, deleteListTasks, readLists, updateTaskById, updateListbyID, updateListAttributes };
+module.exports = { testConnection, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, createTask, createList, createUser, readTasks, checkComplete, checkPass, checkUse, checkEmail, check, deleteTask, deleteTasks, deleteCompletedTasks, deleteList, deleteListTasks, readLists, updateTaskById, updateListbyID, updateListAttributes };

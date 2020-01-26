@@ -42,6 +42,7 @@ const { readListObjects } = require('./DataAccessLayer.js')
 const { readTaskObjects } = require('./DataAccessLayer.js')
 const { updateListObj } = require('./DataAccessLayer.js')
 const { updateTaskObj } = require('./DataAccessLayer.js')
+const { updateTaskObjDone } = require('./DataAccessLayer.js')
 
 
 app.post('/users', async (req, res) => {
@@ -98,6 +99,15 @@ app.patch('/tasks', async(req, res) => {
     const listname = req.query.list
     const task = req.body
     const update = await updateTaskObj(user, listname, id, task)
+    res.send(update)
+})
+
+app.patch('/tasks-complete', async(req, res) => {
+    const user = req.query.user
+    const id = req.query.id
+    const listname = req.query.list
+    const task = req.body
+    const update = await updateTaskObjDone(user, listname, id, task)
     res.send(update)
 })
 

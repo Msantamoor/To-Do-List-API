@@ -117,7 +117,7 @@ const readListObjects = (id) => {
                 // Get the tasks collection
                 const collection = db.collection('ToDoObjects');
                 // Find some documents
-                collection.find({ _id: ObjectId(id)}).toArray(function (err, docs) {
+                collection.find({ _id: ObjectId(id)}, {lists: 1, _id: 0, username: 0, email: 0, password: 0}).toArray(function (err, docs) {
                     if (err) {
                         reject(err)
                     } else {
@@ -211,7 +211,42 @@ const updateTaskObj = (user, listname, taskname, task) => {
                 // Insert a document
                 collection.updateOne({
                                      _id: ObjectId(user)},  
-                                    {$set: {"lists.$[listname].tasks.$[taskname]": task}}, 
+                                    {$set: {"lists.$[listname].tasks.$[taskname].name": task.name, "lists.$[listname].tasks.$[taskname].description": task.description, "lists.$[listname].tasks.$[taskname].due": task.due}}, 
+                                    { arrayFilters: [{"listname.name": listname}, {"taskname.name": taskname}]
+    
+                                    }, function (err, result) {
+                     if (err) {
+                       reject(err)
+                   }
+                   else {
+                        client.close();
+                        resolve(result);
+                   }
+
+                 });
+            }
+        })
+    });
+    return iou
+}
+
+const updateTaskObjDone = (user, listname, taskname, task) => {
+    // Use connect method to connect to the server
+    let iou = new Promise((resolve, reject) => {
+
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            }
+            else {
+                console.log("Connected to server for Creation of lists");
+                const db = client.db(dbName);
+                // Get the lists collection
+                const collection = db.collection(`ToDoObjects`);
+                // Insert a document
+                collection.updateOne({
+                                     _id: ObjectId(user)},  
+                                    {$set: {"lists.$[listname].tasks.$[taskname].completed": task}}, 
                                     { arrayFilters: [ {"listname.name": listname}, {"taskname.name": taskname} ]
     
                                     }, function (err, result) {
@@ -229,6 +264,8 @@ const updateTaskObj = (user, listname, taskname, task) => {
     });
     return iou
 }
+
+
 
 const testConnection = () => {
     const iou = new Promise((resolve, reject) => {
@@ -757,4 +794,4 @@ const deleteListTasks = (user, list) => {
 };
 
 
-module.exports = { testConnection, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, createTask, createList, createUser, readTasks, checkComplete, checkPass, checkUse, checkEmail, check, deleteTask, deleteTasks, deleteCompletedTasks, deleteList, deleteListTasks, readLists, updateTaskById, updateListbyID, updateListAttributes };
+module.exports = { testConnection, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, createTask, createList, createUser, readTasks, checkComplete, checkPass, checkUse, checkEmail, check, deleteTask, deleteTasks, deleteCompletedTasks, deleteList, deleteListTasks, readLists, updateTaskById, updateListbyID, updateListAttributes };

@@ -43,6 +43,11 @@ const { readTaskObjects } = require('./DataAccessLayer.js')
 const { updateListObj } = require('./DataAccessLayer.js')
 const { updateTaskObj } = require('./DataAccessLayer.js')
 const { updateTaskObjDone } = require('./DataAccessLayer.js')
+const { deleteTaskObj } = require('./DataAccessLayer.js')
+const { deleteTaskObjDone } = require('./DataAccessLayer.js')
+const { deleteTaskObjSelected } = require('./DataAccessLayer.js')
+const { deleteListObj } = require('./DataAccessLayer.js')
+
 
 
 app.post('/users', async (req, res) => {
@@ -81,7 +86,8 @@ app.get('/lists', async (req, res) => {
 app.get('/tasks', async (req, res) =>  {
     const user = req.query.user
     const list = req.query.list
-    const tasks = await readTaskObjects(user, list)
+    const index = req.query.index
+    const tasks = await readTaskObjects(user, list, index)
     res.send(tasks)
 })
 
@@ -90,6 +96,13 @@ app.patch('/lists', async(req, res) => {
     const id = req.query.id
     const list = req.body
     const update = await updateListObj(user, id, list)
+    res.send(update)
+})
+
+app.delete('/lists', async(req, res) => {
+    const user = req.query.user
+    const list = req.query.list
+    const update = await deleteListObj(user, list)
     res.send(update)
 })
 
@@ -106,8 +119,31 @@ app.patch('/tasks-complete', async(req, res) => {
     const user = req.query.user
     const id = req.query.id
     const listname = req.query.list
-    const task = req.body
+    const task = req.query.complete
     const update = await updateTaskObjDone(user, listname, id, task)
+    res.send(update)
+})
+
+app.delete('/tasks', async(req, res) => {
+    const user = req.query.user
+    const id = req.query.id
+    const listname = req.query.list
+    const update = await deleteTaskObj(user, listname, id)
+    res.send(update)
+})
+
+app.delete('/tasks-complete', async(req, res) => {
+    const user = req.query.user
+    const listname = req.query.list
+    const update = await deleteTaskObjDone(user, listname)
+    res.send(update)
+})
+
+app.delete('/tasks-selected', async(req, res) => {
+    const user = req.query.user
+    const listname = req.query.list
+    const names = req.query.names
+    const update = await deleteTaskObjSelected(user, listname, names)
     res.send(update)
 })
 
@@ -177,17 +213,17 @@ app.get('/users-login', async (req, res) => {
 //     res.send()
 // })
 
-app.delete('/lists', async (req, res) => {
-    let id = req.query.id
-    let user = req.query.user
-    let list = req.query.list
+// app.delete('/lists', async (req, res) => {
+//     let id = req.query.id
+//     let user = req.query.user
+//     let list = req.query.list
 
-    await deleteList(id)
-    console.log('Deleted List')
-    await deleteListTasks(user, list)
-    console.log('Deleted corresponding tasks')
-    res.send()
-})
+//     await deleteList(id)
+//     console.log('Deleted List')
+//     await deleteListTasks(user, list)
+//     console.log('Deleted corresponding tasks')
+//     res.send()
+// })
 
 // app.post('/tasks', async (req, res) => {
 //     const newTask = req.body
@@ -216,39 +252,39 @@ app.delete('/lists', async (req, res) => {
 //     res.send()
 // })
 
-app.delete('/tasks', async (req, res) => {
-    let id = req.query.id
-    console.log(id)
-    await deleteTask(id)
-    console.log('A DELETE Request was made!');
-    res.send()
-})
+// app.delete('/tasks', async (req, res) => {
+//     let id = req.query.id
+//     console.log(id)
+//     await deleteTask(id)
+//     console.log('A DELETE Request was made!');
+//     res.send()
+// })
 
-app.get('/tasks-completed', async (req, res) => {
-    let id = req.query.id
-    let comp = req.query.completed
-    const completed = await checkComplete(id, comp)
-    res.send(completed)
-})
+// app.get('/tasks-completed', async (req, res) => {
+//     let id = req.query.id
+//     let comp = req.query.completed
+//     const completed = await checkComplete(id, comp)
+//     res.send(completed)
+// })
 
-app.delete('/tasks-completed', async (req, res) => {
-    let user = req.query.user
-    let list = req.query.list
+// app.delete('/tasks-completed', async (req, res) => {
+//     let user = req.query.user
+//     let list = req.query.list
 
-    await deleteCompletedTasks(user, list)
-    console.log('A Done Task DELETE Request was made!');
-    res.send()
-})
+//     await deleteCompletedTasks(user, list)
+//     console.log('A Done Task DELETE Request was made!');
+//     res.send()
+// })
 
-app.delete('/tasks-selected', async (req, res) => {
-    let user = req.query.user
-    let list = req.query.list
-    let names = req.query.names
-    console.log(names)
-    await deleteTasks(user, list, names)
-    console.log('Deleted Selected Tasks')
-    res.send()
-})
+// app.delete('/tasks-selected', async (req, res) => {
+//     let user = req.query.user
+//     let list = req.query.list
+//     let names = req.query.names
+//     console.log(names)
+//     await deleteTasks(user, list, names)
+//     console.log('Deleted Selected Tasks')
+//     res.send()
+// })
 
 app.get('/*', function(req, res){
     res.sendFile(path.join(__dirname, './react/', '/'))

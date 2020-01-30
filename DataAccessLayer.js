@@ -49,17 +49,32 @@ const createListObj = (user, list) => {
             else {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
-                collection.updateOne({_id: ObjectId(user)}, 
-                                     {$push: {lists: list}}, function (err, result) {
-                     if (err) {
-                       reject(err)
-                   }
-                   else {
-                        client.close();
-                        resolve(list);
-                   }
+                collection.findOne({ $and: [ {_id: ObjectId(user)}, {"lists.listname": list.listname }] },
+                function (err, docs) {
+                    if (err) {
+                        reject(err)
+                    } else {
+                        console.log(docs)
+                        if(docs === null){
+                            collection.updateOne({_id: ObjectId(user)}, 
+                            {$push: {lists: list}}, function (err, result) {
+                                if (err) {
+                                reject(err)
+                            }
+                            else {
+                                client.close();
+                                resolve(list);
+                            }
 
-                 });
+                            });
+                        }else{
+                            client.close();
+                            resolve('No Duplicate List Names');
+                        }
+                        
+                        
+                    }
+                })          
             }
         })
     });
@@ -71,21 +86,32 @@ const createTaskObj = (user, listname, task) => {
         MongoClient.connect(url, settings, function (err, client) {
             if (err) {
                 reject(err)
-            }
-            else {
+            } else {
                 const db = client.db(dbName);
-                const collection = db.collection(`ToDoObjects`);
-                collection.updateOne({ _id: ObjectId(user), "lists": { "$elemMatch":  { "listname": listname}}}, 
-                                     {$push: {"lists.$.tasks": task}}, function (err, result) {
-                     if (err) {
-                       reject(err)
-                   }
-                   else {
-                        client.close();
-                        resolve(task);
-                   }
+                const collection = db.collection(`ToDoObjects`); 
+                collection.findOne({$and: [ {_id: ObjectId(user)}, {"lists.listname": listname }, {"lists.tasks.name": task.name} ]},
+                function (err, docs) {
+                    if (err) {
+                        reject(err)
+                } else {
+                    if(docs === null){
+                        collection.updateOne({ _id: ObjectId(user), "lists": { "$elemMatch":  { "listname": listname}}}, 
+                                            {$push: {"lists.$.tasks": task}}, function (err, result) {
+                            if (err) {
+                            reject(err)
+                        }
+                        else {
+                                client.close();
+                                resolve(task);
+                        }
 
-                 });
+                        });
+                    }else{
+                        client.close();
+                        resolve('No Duplicate Task Names');
+                    }
+                }
+                })
             }
         })
     });
@@ -144,24 +170,36 @@ const updateListObj = (user, name, list) => {
         MongoClient.connect(url, settings, function (err, client) {
             if (err) {
                 reject(err)
-            }
-            else {
+            } else {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
-                collection.updateOne({ _id: ObjectId(user), "lists": { "$elemMatch":  { "listname": name}}},
-                    {$set: {"lists.$.listname": list.listname, "lists.$.description": list.description, "lists.$.due": list.due }}, function (err, result) {
-                     if (err) {
-                       reject(err)
-                   }
-                   else {
-                        client.close();
-                        resolve(list);
-                   }
+                collection.findOne({ $and: [ {_id: ObjectId(user)}, {"lists.listname": list.listname }] },
+                function (err, docs) {
+                if (err) {
+                    reject(err)
+                } else {
+                        console.log(docs)
+                        if(docs === null){
+                            collection.updateOne({ _id: ObjectId(user), "lists": { "$elemMatch":  { "listname": name}}},
+                                {$set: {"lists.$.listname": list.listname, "lists.$.description": list.description, "lists.$.due": list.due }}, function (err, result) {
+                                if (err) {
+                                reject(err)
+                            }
+                            else {
+                                    client.close();
+                                    resolve(list);
+                            }
 
-                 });
+                            });
+                        }else{
+                            client.close();
+                            resolve('No Duplicate List Names');
+                        }
+                    }
+                })
             }
-        })
-    });
+        });
+    })
     return iou
 }
 
@@ -174,20 +212,32 @@ const updateTaskObj = (user, listname, taskname, task) => {
             else {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
-                collection.updateOne({ _id: ObjectId(user)},  
-                    {$set: {"lists.$[listname].tasks.$[taskname].name": task.name, "lists.$[listname].tasks.$[taskname].description": task.description, "lists.$[listname].tasks.$[taskname].due": task.due}}, 
-                    { arrayFilters: [{"listname.listname": listname}, {"taskname.name": taskname}]
+                collection.findOne({$and: [ {_id: ObjectId(user)}, {"lists.listname": listname }, {"lists.tasks.name": task.name} ]},
+                function (err, docs) {
+                    if (err) {
+                        reject(err)
+                    } else {
+                        if(docs === null){
+                                collection.updateOne({ _id: ObjectId(user)},  
+                                    {$set: {"lists.$[listname].tasks.$[taskname].name": task.name, "lists.$[listname].tasks.$[taskname].description": task.description, "lists.$[listname].tasks.$[taskname].due": task.due}}, 
+                                    { arrayFilters: [{"listname.listname": listname}, {"taskname.name": taskname}]
 
-                    }, function (err, result) {
-                     if (err) {
-                       reject(err)
-                   }
-                   else {
-                        client.close();
-                        resolve(result);
-                   }
+                                    }, function (err, result) {
+                                    if (err) {
+                                    reject(err)
+                                }
+                                else {
+                                        client.close();
+                                        resolve(result);
+                                }
 
-                 });
+                                });
+                        }else{
+                            client.close();
+                            resolve('No Duplicate Task Names');
+                        }
+                    }
+                })
             }
         })
     });

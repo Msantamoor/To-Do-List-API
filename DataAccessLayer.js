@@ -139,7 +139,7 @@ const readTaskObjects = (user, listname, index) => {
     return iou;
 }
 
-const updateListObj = (user, listname, list) => {
+const updateListObj = (user, name, list) => {
     let iou = new Promise((resolve, reject) => {
         MongoClient.connect(url, settings, function (err, client) {
             if (err) {
@@ -148,7 +148,7 @@ const updateListObj = (user, listname, list) => {
             else {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
-                collection.updateOne({ _id: ObjectId(user), "lists": { "$elemMatch":  { "listname": listname}}},
+                collection.updateOne({ _id: ObjectId(user), "lists": { "$elemMatch":  { "listname": name}}},
                     {$set: {"lists.$.listname": list.listname, "lists.$.description": list.description, "lists.$.due": list.due }}, function (err, result) {
                      if (err) {
                        reject(err)

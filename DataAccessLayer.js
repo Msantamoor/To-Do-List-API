@@ -149,7 +149,7 @@ const updateListObj = (user, listname, list) => {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
                 collection.updateOne({ _id: ObjectId(user), "lists": { "$elemMatch":  { "listname": listname}}},
-                    {$set: {"lists.$.listname": list.name, "lists.$.description": list.description, "lists.$.due": list.due }}, function (err, result) {
+                    {$set: {"lists.$.listname": list.listname, "lists.$.description": list.description, "lists.$.due": list.due }}, function (err, result) {
                      if (err) {
                        reject(err)
                    }

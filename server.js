@@ -85,7 +85,6 @@ app.post('/tasks', async (req, res) => {
     const user = req.query.user
     const list = req.query.list
     const newObject = req.body
-    console.log(newObject)
     const task = await createTaskObj(user, list, newObject)
     console.log('Object Created')
     res.send(task)

@@ -50,7 +50,7 @@ const createListObj = (user, list) => {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
                 collection.updateOne({_id: ObjectId(user)}, 
-                                  {$push: {lists: list}}, function (err, result) {
+                                     {$push: {lists: list}}, function (err, result) {
                      if (err) {
                        reject(err)
                    }
@@ -149,7 +149,7 @@ const updateListObj = (user, listname, list) => {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
                 collection.updateOne({ _id: ObjectId(user), "lists": { "$elemMatch":  { "listname": listname}}},
-                                      {$set: {"lists.$.listname": list.name, "lists.$.description": list.description, "lists.$.due": list.due }}, function (err, result) {
+                    {$set: {"lists.$.listname": list.name, "lists.$.description": list.description, "lists.$.due": list.due }}, function (err, result) {
                      if (err) {
                        reject(err)
                    }
@@ -174,12 +174,11 @@ const updateTaskObj = (user, listname, taskname, task) => {
             else {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
-                collection.updateOne({
-                                     _id: ObjectId(user)},  
-                                    {$set: {"lists.$[listname].tasks.$[taskname].name": task.name, "lists.$[listname].tasks.$[taskname].description": task.description, "lists.$[listname].tasks.$[taskname].due": task.due}}, 
-                                    { arrayFilters: [{"listname.listname": listname}, {"taskname.name": taskname}]
-    
-                                    }, function (err, result) {
+                collection.updateOne({ _id: ObjectId(user)},  
+                    {$set: {"lists.$[listname].tasks.$[taskname].name": task.name, "lists.$[listname].tasks.$[taskname].description": task.description, "lists.$[listname].tasks.$[taskname].due": task.due}}, 
+                    { arrayFilters: [{"listname.listname": listname}, {"taskname.name": taskname}]
+
+                    }, function (err, result) {
                      if (err) {
                        reject(err)
                    }
@@ -204,12 +203,11 @@ const updateTaskObjDone = (user, listname, taskname, task) => {
             else {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
-                collection.updateOne({
-                                     _id: ObjectId(user)},  
-                                    {$set: {"lists.$[listname].tasks.$[taskname].completed": task}}, 
-                                    { arrayFilters: [ {"listname.listname": listname}, {"taskname.name": taskname} ]
-    
-                                    }, function (err, result) {
+                collection.updateOne({ _id: ObjectId(user)},  
+                    {$set: {"lists.$[listname].tasks.$[taskname].completed": task}}, 
+                    { arrayFilters: [ {"listname.listname": listname}, {"taskname.name": taskname} ]
+
+                    }, function (err, result) {
                      if (err) {
                        reject(err)
                    }
@@ -235,10 +233,9 @@ const deleteTaskObj = (user, listname, taskname) => {
             else {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
-                collection.updateOne({
-                    _id: ObjectId(user)},  
-                   {$pull: {"lists.$[listname].tasks": {"name": taskname}}}, 
-                   { arrayFilters: [ {"listname.listname": listname}]}, 
+                collection.updateOne({ _id: ObjectId(user)},  
+                    {$pull: {"lists.$[listname].tasks": {"name": taskname}}}, 
+                    { arrayFilters: [ {"listname.listname": listname}]}, 
 
                     function (err, result) {
                      if (err) {
@@ -266,8 +263,7 @@ const deleteListObj = (user, listname) => {
                 const db = client.db(dbName);
                 const collection = db.collection(`ToDoObjects`);
                 console.log(listname)
-                collection.updateOne({
-                    _id: ObjectId(user)},  
+                collection.updateOne({ _id: ObjectId(user)},  
                    {$pull: {"lists": { "listname": listname }}},  
 
                     function (err, result) {

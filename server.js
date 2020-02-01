@@ -4,6 +4,9 @@ const path = require('path')
 require('dotenv').config()
 
 require('./mongo.js')
+const bcrypt = require('bcryptjs');
+
+
 
 
 const app = express();
@@ -57,17 +60,26 @@ app.get('/users-login', async (req, res) => {
     console.log(filter)
     const user = await checkPass(filter)
     console.log(user)
-    const match = check(user.data[0].password, pass)
-    if(match === true){
+    if (bcrypt.compareSync(pass, user.data[0].password)) {
         res.send(user.data[0]._id)
-    } else if (match === false){
+    } else {
         res.send('Sign in Failed')
     }
 })
 
 
 app.post('/users', async (req, res) => {
-    const newObject = req.body
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(req.body.password, salt);
+    console.log(hash)
+    const newObject = {
+        username: req.body.username,
+        email: req.body.email,
+        password: hash,
+
+        lists: []
+    }
+
     const user = await createObject(newObject)
     console.log('Object Created')
     res.send(user)

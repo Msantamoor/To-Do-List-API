@@ -433,10 +433,7 @@ const checkPass = (username) => {
                     if (err) {
                         reject(err)
                     } else {
-                        const results = {
-                            data: docs,
-                            msg: `Found a user`
-                        }
+                        const results =  docs[0]
 
                         client.close();
                         resolve(results);
@@ -474,6 +471,31 @@ const checkUse = (username) => {
     return iou;
 }
 
+const getSalt = (username) => {
+    let iou = new Promise((resolve, reject) => {
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            } else {
+                const db = client.db(dbName);
+                const collection = db.collection('ToDoObjects');
+                collection.find({ username: username }).toArray(function (err, docs) {
+                    if (err) {
+                        reject(err)
+                    } else if(docs.length === 0){
+                        client.close();
+                        resolve(false);
+                    } else if(docs.length > 0){
+                        client.close();
+                        resolve(docs[0].salt)
+                    }
+                });
+            }
+        });
+    })
+    return iou;
+}
+
 const checkEmail = (email) => {
     let iou = new Promise((resolve, reject) => {
         MongoClient.connect(url, settings, function (err, client) {
@@ -501,4 +523,4 @@ const checkEmail = (email) => {
 }
 
 
-module.exports = { testConnection, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail, check };
+module.exports = { testConnection, getSalt, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail, check };

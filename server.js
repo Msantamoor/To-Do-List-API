@@ -36,6 +36,7 @@ const { deleteTaskObj } = require('./DataAccessLayer.js')
 const { deleteTaskObjDone } = require('./DataAccessLayer.js')
 const { deleteTaskObjSelected } = require('./DataAccessLayer.js')
 const { deleteListObj } = require('./DataAccessLayer.js')
+const { getSalt } = require('./DataAccessLayer.js')
 
 
 app.get('/users-names', async (req,res) => {
@@ -54,14 +55,24 @@ app.get('/users-emails', async (req, res) => {
     res.send(clear)
 })
 
+app.get('/users-check', async (req, res) => {
+    const user = req.query.username
+    const salt = await getSalt(user)
+    if(salt === false){
+        res.send('Sign in Failed')
+    } else {
+        res.send(salt)
+    }
+})
+
 app.get('/users-login', async (req, res) => {
     let filter = req.query.username
     let pass = req.query.password
     console.log(filter)
     const user = await checkPass(filter)
     console.log(user)
-    if (bcrypt.compareSync(pass, user.data[0].password)) {
-        res.send(user.data[0]._id)
+    if (bcrypt.compareSync(pass, user.password)) {
+        res.send(user._id)
     } else {
         res.send('Sign in Failed')
     }
@@ -70,19 +81,21 @@ app.get('/users-login', async (req, res) => {
 
 app.post('/users', async (req, res) => {
     const salt = bcrypt.genSaltSync(10);
+    console.log(salt)
     const hash = bcrypt.hashSync(req.body.password, salt);
-    console.log(hash)
+    // console.log(hash)
     const newObject = {
         username: req.body.username,
         email: req.body.email,
         password: hash,
+        salt: req.body.salt.toString(),
 
         lists: []
     }
 
     const user = await createObject(newObject)
     console.log('Object Created')
-    res.send(user)
+    res.send('New User Created')
 })
 
 app.post('/lists', async (req, res) => {

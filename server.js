@@ -21,7 +21,6 @@ app.use(express.static(path.join(__dirname, 'react')));
 
 const { testConnection } = require('./DataAccessLayer.js')
 const { checkPass } = require('./DataAccessLayer.js')
-const { check } = require('./DataAccessLayer.js')
 const { checkUse } = require('./DataAccessLayer.js')
 const { checkEmail } = require('./DataAccessLayer.js')
 const { createObject } = require('./DataAccessLayer.js')

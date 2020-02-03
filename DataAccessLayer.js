@@ -412,15 +412,6 @@ const testConnection = () => {
     return iou
 }
 
-
-const check = (check1, check2) => {
-    if(check1 === check2){
-        return true;
-    } else {
-        return false;
-    }
-}
-
 const checkPass = (username) => {
     let iou = new Promise((resolve, reject) => {
         MongoClient.connect(url, settings, function (err, client) {
@@ -523,4 +514,4 @@ const checkEmail = (email) => {
 }
 
 
-module.exports = { testConnection, getSalt, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail, check };
+module.exports = { testConnection, getSalt, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail };

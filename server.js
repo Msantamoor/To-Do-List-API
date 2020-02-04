@@ -2,11 +2,12 @@ const express = require('express');
 const cors = require('cors')
 const path = require('path')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs');
+const secret = 'NeverF7'
 require('dotenv').config()
 
 require('./mongo.js')
-const bcrypt = require('bcryptjs');
-const secret = 'NeverF7'
+
 
 
 

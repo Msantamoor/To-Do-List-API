@@ -71,11 +71,10 @@ app.get('/users-login', async (req, res) => {
     console.log(req)
     let user = req.query.username
     let pass = req.query.password
-    const user = await checkPass(user)
-    console.log(user)
-    if (bcrypt.compareSync(pass, user.password)) {
+    const sign = await checkPass(user)
+    if (bcrypt.compareSync(pass, sign.password)) {
         res.send(jwt.sign({
-            data: user._id
+            data: sign._id
           }, filter, { expiresIn: '1m' }))
     } else {
         res.send('Sign in Failed')

@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors')
 const path = require('path')
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
 require('./mongo.js')
 const bcrypt = require('bcryptjs');
+const secret = 'NeverF7'
 
 
 
@@ -65,13 +67,16 @@ app.get('/users-check', async (req, res) => {
 })
 
 app.get('/users-login', async (req, res) => {
+    console.log(req)
     let filter = req.query.username
     let pass = req.query.password
     console.log(filter)
     const user = await checkPass(filter)
     console.log(user)
     if (bcrypt.compareSync(pass, user.password)) {
-        res.send(user._id)
+        res.send(jwt.sign({
+            data: user._id
+          }, filter, { expiresIn: '1m' }))
     } else {
         res.send('Sign in Failed')
     }
@@ -79,6 +84,7 @@ app.get('/users-login', async (req, res) => {
 
 
 app.post('/users', async (req, res) => {
+    console.log(req.body)
     const salt = bcrypt.genSaltSync(10);
     console.log(salt)
     const hash = bcrypt.hashSync(req.body.password, salt);
@@ -93,12 +99,13 @@ app.post('/users', async (req, res) => {
     }
 
     const user = await createObject(newObject)
+    console.log(user)
     console.log('Object Created')
     res.send('New User Created')
 })
 
 app.post('/lists', async (req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const newObject = req.body
     const list = await createListObj(user, newObject)
     console.log('Object Created')
@@ -106,7 +113,7 @@ app.post('/lists', async (req, res) => {
 })
 
 app.post('/tasks', async (req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const list = req.query.list
     const newObject = req.body
     const task = await createTaskObj(user, list, newObject)
@@ -115,7 +122,7 @@ app.post('/tasks', async (req, res) => {
 })
 
 app.get('/lists', async (req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     console.log(user)
     const lists = await readListObjects(user)
     console.log('A list GET Request was made');
@@ -123,7 +130,7 @@ app.get('/lists', async (req, res) => {
 })
 
 app.get('/tasks', async (req, res) =>  {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const list = req.query.list
     const index = req.query.index
     const tasks = await readTaskObjects(user, list, index)
@@ -131,7 +138,7 @@ app.get('/tasks', async (req, res) =>  {
 })
 
 app.patch('/lists', async(req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const id = req.query.id
     const list = req.body
     const update = await updateListObj(user, id, list)
@@ -139,14 +146,14 @@ app.patch('/lists', async(req, res) => {
 })
 
 app.delete('/lists', async(req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const list = req.query.list
     const update = await deleteListObj(user, list)
     res.send(update)
 })
 
 app.patch('/tasks', async(req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const id = req.query.id
     const listname = req.query.list
     const task = req.body
@@ -155,7 +162,7 @@ app.patch('/tasks', async(req, res) => {
 })
 
 app.patch('/tasks-complete', async(req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const id = req.query.id
     const listname = req.query.list
     const task = req.query.complete
@@ -164,7 +171,7 @@ app.patch('/tasks-complete', async(req, res) => {
 })
 
 app.delete('/tasks', async(req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const id = req.query.id
     const listname = req.query.list
     const update = await deleteTaskObj(user, listname, id)
@@ -172,14 +179,14 @@ app.delete('/tasks', async(req, res) => {
 })
 
 app.delete('/tasks-complete', async(req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const listname = req.query.list
     const update = await deleteTaskObjDone(user, listname)
     res.send(update)
 })
 
 app.delete('/tasks-selected', async(req, res) => {
-    const user = req.query.user
+    const user = jwt.verify(req.query.user, secret)
     const listname = req.query.list
     const names = req.query.names
     const update = await deleteTaskObjSelected(user, listname, names)

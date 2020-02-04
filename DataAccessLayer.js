@@ -1,5 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require("mongodb").ObjectId;
+const jwt = require('jsonwebtoken');
 
 require('dotenv').config()
 
@@ -478,7 +479,9 @@ const getSalt = (username) => {
                         resolve(false);
                     } else if(docs.length > 0){
                         client.close();
-                        resolve(docs[0].salt)
+                        resolve(jwt.sign({
+                            data: docs[0].salt
+                          }, username, { expiresIn: '1m' }))
                     }
                 });
             }

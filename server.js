@@ -41,7 +41,7 @@ const { getSalt } = require('./DataAccessLayer.js')
 
 
 app.get('/users-names', async (req,res) => {
-    let filter = req.query.username
+    const filter = req.query.username
     console.log(filter)
     const clear = await checkUse(filter)
     console.log(clear)
@@ -49,7 +49,7 @@ app.get('/users-names', async (req,res) => {
 })
 
 app.get('/users-emails', async (req, res) => {
-    let filter = req.query.email
+    const filter = req.query.email
     console.log(filter)
     const clear = await checkEmail(filter)
     console.log(clear)
@@ -68,9 +68,8 @@ app.get('/users-check', async (req, res) => {
 
 app.get('/users-login', async (req, res) => {
     console.log(req)
-    let filter = req.query.username
+    let user = req.query.username
     let pass = req.query.password
-    console.log(filter)
     const user = await checkPass(filter)
     console.log(user)
     if (bcrypt.compareSync(pass, user.password)) {

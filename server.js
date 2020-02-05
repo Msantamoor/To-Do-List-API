@@ -67,11 +67,13 @@ app.get('/users-check', async (req, res) => {
 })
 
 app.get('/users-login', async (req, res) => {
-    let username = req.query.username
-    let pass = req.query.password
-    const sign = await checkPass(username)
-    if (bcrypt.compareSync(pass, sign.password)) {
-        res.send(jwt.sign(sign._id, process.env.signKey))
+    console.log(process.env.signKey)
+    const username = req.query.username
+    const pass = req.query.password
+    const log = await checkPass(username)
+    console.log(log._id)
+    if (bcrypt.compareSync(pass, log.password)) {
+        res.send(jwt.sign({data: log._id}, process.env.signKey))
     } else {
         res.send('Sign in Failed')
     }

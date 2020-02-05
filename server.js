@@ -39,6 +39,10 @@ const { deleteTaskObjSelected } = require('./DataAccessLayer.js')
 const { deleteListObj } = require('./DataAccessLayer.js')
 const { getSalt } = require('./DataAccessLayer.js')
 
+app.get('/connection', async (req, res) => {
+    const connection = await testConnection()
+    res.send(connection)
+})
 
 app.get('/users-names', async (req,res) => {
     const filter = req.query.username
@@ -221,8 +225,8 @@ app.delete('/tasks-selected', async(req, res) => {
     res.send(update)
 })
 
-app.get('/*', function(req, res){
-    res.sendFile(path.join(__dirname, './react/', '/'))
-})
+// app.get('/*', function(req, res){
+//     res.sendFile(path.join(__dirname, './react/', '/'))
+// })
 
 app.listen(PORT, () => console.log(`Server is up on port ${PORT}.`));

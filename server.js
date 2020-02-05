@@ -3,7 +3,6 @@ const cors = require('cors')
 const path = require('path')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs');
-const secret = 'NeverF7'
 require('dotenv').config()
 
 require('./mongo.js')
@@ -58,8 +57,8 @@ app.get('/users-emails', async (req, res) => {
 })
 
 app.get('/users-check', async (req, res) => {
-    const user = req.query.username
-    const salt = await getSalt(user)
+    const username = req.query.username
+    const salt = await getSalt(username)
     if(salt === false){
         res.send('Sign in Failed')
     } else {
@@ -68,13 +67,13 @@ app.get('/users-check', async (req, res) => {
 })
 
 app.get('/users-login', async (req, res) => {
-    let user = req.query.username
+    let username = req.query.username
     let pass = req.query.password
-    const sign = await checkPass(user)
+    const sign = await checkPass(username)
     if (bcrypt.compareSync(pass, sign.password)) {
         res.send(jwt.sign({
             data: sign._id
-          }, user, { expiresIn: '1m' }))
+          }, process.env.signKey, { expiresIn: '1m' }))
     } else {
         res.send('Sign in Failed')
     }
@@ -85,13 +84,13 @@ app.post('/users', async (req, res) => {
     console.log(req.body)
     const salt = bcrypt.genSaltSync(10);
     console.log(salt)
-    const hash = bcrypt.hashSync(req.body.password, salt);
+    const hash = bcrypt.hashSync(jwt.verify(req.body.password, process.env.passKey), salt);
     // console.log(hash)
     const newObject = {
         username: req.body.username,
         email: req.body.email,
         password: hash,
-        salt: req.body.salt.toString(),
+        salt: jwt.verify(req.body.salt, process.env.inSaltKey).toString(),
 
         lists: []
     }
@@ -103,24 +102,40 @@ app.post('/users', async (req, res) => {
 })
 
 app.post('/lists', async (req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    if(
+        req.body.listname.length > 50 ||
+        req.body.description.length > 250 ||
+        req.body.due.length > 50
+        ){
+            res.send('Too much data, keep list fields within 50, 250, and 50 characters respectively')
+        }else{
+    const user = jwt.verify(req.query.user, process.env.postListKey)
     const newObject = req.body
     const list = await createListObj(user, newObject)
     console.log('Object Created')
     res.send(list)
+        }
 })
 
 app.post('/tasks', async (req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    if(
+        req.body.name.length > 50 ||
+        req.body.description.length > 250 ||
+        req.body.due.length > 50
+        ){
+            res.send('Too much data, keep task fields within 50, 250, and 50 characters respectively')
+        }else{
+    const user = jwt.verify(req.query.user, process.env.postTaskKey)
     const list = req.query.list
     const newObject = req.body
     const task = await createTaskObj(user, list, newObject)
     console.log('Object Created')
     res.send(task)
+        }
 })
 
 app.get('/lists', async (req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    const user = jwt.verify(req.query.user, process.env.getListKey)
     console.log(user)
     const lists = await readListObjects(user)
     console.log('A list GET Request was made');
@@ -128,7 +143,7 @@ app.get('/lists', async (req, res) => {
 })
 
 app.get('/tasks', async (req, res) =>  {
-    const user = jwt.verify(req.query.user, secret)
+    const user = jwt.verify(req.query.user, process.env.getTaskKey)
     const list = req.query.list
     const index = req.query.index
     const tasks = await readTaskObjects(user, list, index)
@@ -136,31 +151,47 @@ app.get('/tasks', async (req, res) =>  {
 })
 
 app.patch('/lists', async(req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    if(
+        req.body.listname.length > 50 ||
+        req.body.description.length > 250 ||
+        req.body.due.length > 50
+        ){
+            res.send('Too much data, keep list fields within 50, 250, and 50 characters respectively')
+        }else{
+    const user = jwt.verify(req.query.user, process.env.patchListKey)
     const id = req.query.id
     const list = req.body
     const update = await updateListObj(user, id, list)
     res.send(update)
+        }
 })
 
 app.delete('/lists', async(req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    const user = jwt.verify(req.query.user, process.env.deleteListKey)
     const list = req.query.list
     const update = await deleteListObj(user, list)
     res.send(update)
 })
 
 app.patch('/tasks', async(req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    if(
+        req.body.name.length > 50 ||
+        req.body.description.length > 250 ||
+        req.body.due.length > 50
+        ){
+            res.send('Too much data, keep task fields within 50, 250, and 50 characters respectively')
+        }else{
+    const user = jwt.verify(req.query.user, process.env.patchTaskKey)
     const id = req.query.id
     const listname = req.query.list
     const task = req.body
     const update = await updateTaskObj(user, listname, id, task)
     res.send(update)
+        }
 })
 
 app.patch('/tasks-complete', async(req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    const user = jwt.verify(req.query.user, process.env.patchCompleteKey)
     const id = req.query.id
     const listname = req.query.list
     const task = req.query.complete
@@ -169,7 +200,7 @@ app.patch('/tasks-complete', async(req, res) => {
 })
 
 app.delete('/tasks', async(req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    const user = jwt.verify(req.query.user, process.env.deleteTaskKey)
     const id = req.query.id
     const listname = req.query.list
     const update = await deleteTaskObj(user, listname, id)
@@ -177,14 +208,14 @@ app.delete('/tasks', async(req, res) => {
 })
 
 app.delete('/tasks-complete', async(req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    const user = jwt.verify(req.query.user, process.env.deleteCompleteKey)
     const listname = req.query.list
     const update = await deleteTaskObjDone(user, listname)
     res.send(update)
 })
 
 app.delete('/tasks-selected', async(req, res) => {
-    const user = jwt.verify(req.query.user, secret)
+    const user = jwt.verify(req.query.user, process.env.deleteSelectKey)
     const listname = req.query.list
     const names = req.query.names
     const update = await deleteTaskObjSelected(user, listname, names)

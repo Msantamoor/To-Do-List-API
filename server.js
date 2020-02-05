@@ -69,7 +69,7 @@ app.get('/users-check', async (req, res) => {
 app.get('/users-login', async (req, res) => {
     console.log(process.env.signKey)
     const username = req.query.username
-    const pass = req.query.password
+    const pass = jwt.verify(req.query.password, process.env.checkKey)
     const sign = await checkPass(username)
     console.log(sign._id)
     if (bcrypt.compareSync(pass, sign.password)) {

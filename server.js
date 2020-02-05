@@ -96,7 +96,6 @@ app.post('/users', async (req, res) => {
     }
 
     const user = await createObject(newObject)
-    console.log(user)
     console.log('Object Created')
     res.send('New User Created')
 })

@@ -45,17 +45,17 @@ app.get('/connection', async (req, res) => {
 })
 
 app.get('/users-names', async (req,res) => {
-    const filter = req.query.username
-    console.log(filter)
-    const clear = await checkUse(filter)
+    const username = req.query.username
+    console.log(username)
+    const clear = await checkUse(username)
     console.log(clear)
     res.send(clear)
 })
 
 app.get('/users-emails', async (req, res) => {
-    const filter = req.query.email
-    console.log(filter)
-    const clear = await checkEmail(filter)
+    const email = req.query.email
+    console.log(email)
+    const clear = await checkEmail(email)
     console.log(clear)
     res.send(clear)
 })

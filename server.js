@@ -220,7 +220,7 @@ app.delete('/tasks-complete', async(req, res) => {
 app.delete('/tasks-selected', async(req, res) => {
     const user = jwt.verify(req.query.user, process.env.deleteSelectKey)
     const listname = req.query.list
-    const names = req.query.names
+    const namesArray = req.query.names
     const update = await deleteTaskObjSelected(user, listname, names)
     res.send(update)
 })

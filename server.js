@@ -3,8 +3,10 @@ const cors = require('cors')
 const path = require('path')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs');
+const passport = require('passport')
+const GoogleStrategy = require('passport-google').Strategy;
 require('dotenv').config()
-
+require('passport')
 require('./mongo.js')
 
 
@@ -14,6 +16,17 @@ require('./mongo.js')
 const app = express();
 
 const PORT = process.env.PORT || 3307;
+
+passport.use(new GoogleStrategy({
+    returnURL: 'http://localhost:3306/auth/google/return',
+    realm: 'http://localhost:3306/'
+  },
+  function(identifier, done) {
+    User.findByOpenID({ openId: identifier }, function (err, user) {
+      return done(err, user);
+    });
+  }
+));
 
 app.use(cors());
 app.use(express.json());
@@ -38,11 +51,22 @@ const { deleteTaskObjDone } = require('./DataAccessLayer.js')
 const { deleteTaskObjSelected } = require('./DataAccessLayer.js')
 const { deleteListObj } = require('./DataAccessLayer.js')
 const { getSalt } = require('./DataAccessLayer.js')
+const { logGoogle } = require('./DataAccessLayer.js')
+
 
 app.get('/connection', async (req, res) => {
     const connection = await testConnection()
     res.send(connection)
 })
+
+app.get('/auth/google/return',
+  passport.authenticate('google', async (req, res) => {
+       console.log(req)
+    const email = req.user.email
+    console.log(email)
+    const user = await logGoogle(email)
+    res.send(jwt.sign({data: user._id}, process.env.signKey))
+  }))
 
 app.get('/users-names', async (req,res) => {
     const username = req.query.username

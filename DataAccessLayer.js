@@ -547,5 +547,38 @@ const checkEmail = (email) => {
     return iou;
 }
 
+const logGoogle = (email) => {
+    let iou = new Promise((resolve, reject) => {
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            } else {
+                console.log('Connected to server Read tasks');
+                const db = client.db(dbName)
+                const collection = db.collection('ToDoObjects')
+                collection.find({ email: email }).toArray(function (err, docs) {
+                    if (err) {
+                        reject(err)
+                    } else if(docs.length === 0){
+                        collection.insertOne(user, function (err, result) {
+                            if (err) {
+                              reject(err)
+                          }
+                          else {
+                               client.close();
+                               resolve(user);
+                          }
+                        })
+                    } else if(docs.length > 0){
+                        client.close();
+                        resolve(docs[0])
+                    }
+                });
+            }
+        });
+    })
+    return iou;
+}
 
-module.exports = { testConnection, getSalt, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail };
+
+module.exports = { testConnection, logGoogle, getSalt, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail };

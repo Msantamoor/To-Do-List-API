@@ -221,12 +221,8 @@ app.delete('/tasks-selected', async(req, res) => {
     const user = jwt.verify(req.query.user, process.env.deleteSelectKey)
     const listname = req.query.list
     const namesArray = req.query.names
-    const update = await deleteTaskObjSelected(user, listname, names)
+    const update = await deleteTaskObjSelected(user, listname, namesArray)
     res.send(update)
 })
-
-// app.get('/*', function(req, res){
-//     res.sendFile(path.join(__dirname, './react/', '/'))
-// })
 
 app.listen(PORT, () => console.log(`Server is up on port ${PORT}.`));

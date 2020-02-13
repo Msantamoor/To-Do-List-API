@@ -4,29 +4,64 @@ const path = require('path')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs');
 const passport = require('passport')
-const GoogleStrategy = require('passport-google').Strategy;
+const passportGoogle = require('passport-google-oauth')
+const GoogleStrategy = passportGoogle.OAuth2Strategy
+const { to } = require('await-to-js')
+const { logGoogle, createObject } = require('./DataAccessLayer.js')
 require('dotenv').config()
 require('passport')
 require('./mongo.js')
 
+const strategyOptions = {
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: `${process.env.SERVER_API_URL}/auth/google/callback`
+}
 
+const verifyCallback = async (
+        accessToken,
+        refreshToken,
+        profile,
+        done
+      ) => {
+        let [err, user] = await to(getUserByProviderId(profile.id))
+        if (err || user) {
+          return done(err, user)
+        }
+    
+        const verifiedEmail = profile.emails.find(email => email.verified) || profile.emails[0]
+    
+        const [createdError, createdUser] = await to(
+          createUser({
+            provider: profile.provider,
+            providerId: profile.id,
+            firstName: profile.name.givenName,
+            lastName: profile.name.familyName,
+            displayName: profile.displayName,
+            email: verifiedEmail.value,
+            password: null
+          })
+        )
 
+        return done(createdError, createdUser)
+      }
 
 
 const app = express();
 
 const PORT = process.env.PORT || 3307;
 
-passport.use(new GoogleStrategy({
-    returnURL: 'http://localhost:3306/auth/google/return',
-    realm: 'http://localhost:3306/'
-  },
-  function(identifier, done) {
-    User.findByOpenID({ openId: identifier }, function (err, user) {
-      return done(err, user);
-    });
-  }
-));
+
+passport.use(new GoogleStrategy(strategyOptions, verifyCallback))
+  
+app.get('/auth/google',
+  passport.authenticate('google', {
+      scope: [
+          'https://www.googleapis.com/auth/userinfo.profile',
+          'https://www.googleapis.com/auth/userinfo.email'
+      ]
+  })
+)
 
 app.use(cors());
 app.use(express.json());
@@ -34,11 +69,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'react')));
 
 
+
+
 const { testConnection } = require('./DataAccessLayer.js')
 const { checkPass } = require('./DataAccessLayer.js')
 const { checkUse } = require('./DataAccessLayer.js')
 const { checkEmail } = require('./DataAccessLayer.js')
-const { createObject } = require('./DataAccessLayer.js')
+// const { createObject } = require('./DataAccessLayer.js')
 const { createListObj } = require('./DataAccessLayer.js')
 const { createTaskObj } = require('./DataAccessLayer.js')
 const { readListObjects } = require('./DataAccessLayer.js')
@@ -51,7 +88,7 @@ const { deleteTaskObjDone } = require('./DataAccessLayer.js')
 const { deleteTaskObjSelected } = require('./DataAccessLayer.js')
 const { deleteListObj } = require('./DataAccessLayer.js')
 const { getSalt } = require('./DataAccessLayer.js')
-const { logGoogle } = require('./DataAccessLayer.js')
+// const { logGoogle } = require('./DataAccessLayer.js')
 
 
 app.get('/connection', async (req, res) => {
@@ -59,16 +96,18 @@ app.get('/connection', async (req, res) => {
     res.send(connection)
 })
 
-app.get('/auth/google/return',
-  passport.authenticate('google', async (req, res) => {
-       console.log(req)
-    const email = req.user.email
-    console.log(email)
-    const user = await logGoogle(email)
-    res.send(jwt.sign({data: user._id}, process.env.signKey))
-  }))
+  
+app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }), async (req, res) => {
+        console.log(res)
+        console.log(res.data)
+        console.log(res._id)
+        console.log(res.data._id)
+        res.send(jwt.sign({data: googleUser._id}, process.env.signKey))
+        .redirect("/Select")
+})
 
-app.get('/users-names', async (req,res) => {
+app.get('/users-names', async (req, res) => {
     const username = req.query.username
     console.log(username)
     const clear = await checkUse(username)
@@ -80,8 +119,11 @@ app.get('/users-emails', async (req, res) => {
     const email = req.query.email
     console.log(email)
     const clear = await checkEmail(email)
-    console.log(clear)
-    res.send(clear)
+    if(clear === err){
+        res.send(true)
+    } else {
+    res.send(false)
+    }
 })
 
 app.get('/users-check', async (req, res) => {

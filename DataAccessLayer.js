@@ -535,10 +535,10 @@ const checkEmail = (email) => {
                         reject(err)
                     } else if(docs.length === 0){
                         client.close();
-                        resolve(true);
+                        resolve(err);
                     } else if(docs.length > 0){
                         client.close();
-                        resolve(false)
+                        resolve(docs[0])
                     }
                 });
             }
@@ -547,13 +547,14 @@ const checkEmail = (email) => {
     return iou;
 }
 
-const logGoogle = (email) => {
+const logGoogle = (user, email) => {
     let iou = new Promise((resolve, reject) => {
         MongoClient.connect(url, settings, function (err, client) {
             if (err) {
                 reject(err)
             } else {
-                console.log('Connected to server Read tasks');
+                console.log('Connected to server to Check for Google accounts');
+                console.log(email)
                 const db = client.db(dbName)
                 const collection = db.collection('ToDoObjects')
                 collection.find({ email: email }).toArray(function (err, docs) {
@@ -565,8 +566,15 @@ const logGoogle = (email) => {
                               reject(err)
                           }
                           else {
-                               client.close();
-                               resolve(user);
+                              collection.find({ email: email }).toArray(function (err, docs) {
+                                  if(err){
+                                      reject(err)
+                                  }
+                                  else{
+                                    client.close();
+                                    resolve(docs[0]);
+                                  }
+                              })    
                           }
                         })
                     } else if(docs.length > 0){

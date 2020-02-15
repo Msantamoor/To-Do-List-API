@@ -7,7 +7,7 @@ const passport = require('passport')
 const passportGoogle = require('passport-google-oauth')
 const GoogleStrategy = passportGoogle.OAuth2Strategy
 const { to } = require('await-to-js')
-const { logGoogle, createObject } = require('./DataAccessLayer.js')
+const { checkEmail, createObject } = require('./DataAccessLayer.js')
 require('dotenv').config()
 require('passport')
 require('./mongo.js')
@@ -24,22 +24,25 @@ const verifyCallback = async (
         profile,
         done
       ) => {
-        let [err, user] = await to(getUserByProviderId(profile.id))
-        if (err || user) {
-          return done(err, user)
-        }
-    
         const verifiedEmail = profile.emails.find(email => email.verified) || profile.emails[0]
-    
+          console.log(verifiedEmail)
+          console.log(profile.id)
+        let [err, user] = await to(checkEmail(verifiedEmail.value))
+        
+        if (err || user) {
+            return done(err, user)
+        }
+        
+        
+        
         const [createdError, createdUser] = await to(
-          createUser({
+          createObject({
             provider: profile.provider,
             providerId: profile.id,
-            firstName: profile.name.givenName,
-            lastName: profile.name.familyName,
             displayName: profile.displayName,
             email: verifiedEmail.value,
-            password: null
+            password: null,
+            lists: []
           })
         )
 
@@ -67,14 +70,25 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'react')));
+app.use(passport.initialize());
+app.use(passport.session());
 
+passport.serializeUser(function(user, done) {
+    done(null, user._id);
+});
+
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
+});
 
 
 
 const { testConnection } = require('./DataAccessLayer.js')
 const { checkPass } = require('./DataAccessLayer.js')
 const { checkUse } = require('./DataAccessLayer.js')
-const { checkEmail } = require('./DataAccessLayer.js')
+// const { checkEmail } = require('./DataAccessLayer.js')
 // const { createObject } = require('./DataAccessLayer.js')
 const { createListObj } = require('./DataAccessLayer.js')
 const { createTaskObj } = require('./DataAccessLayer.js')
@@ -98,13 +112,16 @@ app.get('/connection', async (req, res) => {
 
   
 app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/' }), async (req, res) => {
+    passport.authenticate('google', { failureRedirect: `${process.env.FRONT_END_URL}/` }), async (req, res) => {
         console.log(res)
-        console.log(res.data)
-        console.log(res._id)
-        console.log(res.data._id)
-        res.send(jwt.sign({data: googleUser._id}, process.env.signKey))
-        .redirect("/Select")
+        console.log(req.user)
+        // console.log(res.user._id)
+        return res
+        .status(200)
+        .cookie('jwt', jwt.sign({exp: Math.floor(Date.now() / 1000) + (60), data: req.user._id}, process.env.signKey), {
+          httpOnly: true
+        })
+        .redirect(`${process.env.FRONT_END_URL}/Select`)
 })
 
 app.get('/users-names', async (req, res) => {

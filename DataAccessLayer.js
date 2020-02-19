@@ -150,6 +150,7 @@ const readTaskObjects = (user, listname, index) => {
             } else {
                 const db = client.db(dbName);
                 const collection = db.collection('ToDoObjects');
+                console.log(user)
                 console.log(listname)
                 collection.find({ _id: ObjectId(user)}).toArray(function (err, docs) {
                     if (err) {
@@ -521,7 +522,7 @@ const getSalt = (username) => {
     return iou;
 }
 
-const checkEmail = (email) => {
+const getEmail = (email) => {
     let iou = new Promise((resolve, reject) => {
         MongoClient.connect(url, settings, function (err, client) {
             if (err) {
@@ -539,6 +540,32 @@ const checkEmail = (email) => {
                     } else if(docs.length > 0){
                         client.close();
                         resolve(docs[0])
+                    }
+                });
+            }
+        });
+    })
+    return iou;
+}
+
+const checkEmail = (email) => {
+    let iou = new Promise((resolve, reject) => {
+        MongoClient.connect(url, settings, function (err, client) {
+            if (err) {
+                reject(err)
+            } else {
+                console.log('Connected to check for existing email');
+                const db = client.db(dbName)
+                const collection = db.collection('ToDoObjects')
+                collection.find({ email: email }).toArray(function (err, docs) {
+                    if (err) {
+                        reject(err)
+                    } else if(docs.length === 0){
+                        client.close();
+                        resolve(true);
+                    } else if(docs.length > 0){
+                        client.close();
+                        resolve(false)
                     }
                 });
             }
@@ -573,46 +600,7 @@ const checkUser = (profileID) => {
     return iou;
 }
 
-const logGoogle = (user, email) => {
-    let iou = new Promise((resolve, reject) => {
-        MongoClient.connect(url, settings, function (err, client) {
-            if (err) {
-                reject(err)
-            } else {
-                console.log('Connected to server to Check for Google accounts');
-                console.log(email)
-                const db = client.db(dbName)
-                const collection = db.collection('ToDoObjects')
-                collection.find({ email: email }).toArray(function (err, docs) {
-                    if (err) {
-                        reject(err)
-                    } else if(docs.length === 0){
-                        collection.insertOne(user, function (err, result) {
-                            if (err) {
-                              reject(err)
-                          }
-                          else {
-                              collection.find({ email: email }).toArray(function (err, docs) {
-                                  if(err){
-                                      reject(err)
-                                  }
-                                  else{
-                                    client.close();
-                                    resolve(docs[0]);
-                                  }
-                              })    
-                          }
-                        })
-                    } else if(docs.length > 0){
-                        client.close();
-                        resolve(docs[0])
-                    }
-                });
-            }
-        });
-    })
-    return iou;
-}
 
 
-module.exports = { testConnection, checkUser, logGoogle, getSalt, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail };
+
+module.exports = { testConnection, getEmail, checkUser, getSalt, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail };

@@ -7,7 +7,8 @@ const passport = require('passport')
 const passportGoogle = require('passport-google-oauth')
 const GoogleStrategy = passportGoogle.OAuth2Strategy
 const { to } = require('await-to-js')
-const { checkEmail, createObject } = require('./DataAccessLayer.js')
+const { getEmail, createObject } = require('./DataAccessLayer.js')
+const signInTime = ((1000 * 60) * 60)
 require('dotenv').config()
 require('passport')
 require('./mongo.js')
@@ -27,7 +28,7 @@ const verifyCallback = async (
         const verifiedEmail = profile.emails.find(email => email.verified) || profile.emails[0]
           console.log(verifiedEmail)
           console.log(profile.id)
-        let [err, user] = await to(checkEmail(verifiedEmail.value))
+        let [err, user] = await to(getEmail(verifiedEmail.value))
         
         if (err || user) {
             return done(err, user)
@@ -88,7 +89,7 @@ passport.deserializeUser(function(id, done) {
 const { testConnection } = require('./DataAccessLayer.js')
 const { checkPass } = require('./DataAccessLayer.js')
 const { checkUse } = require('./DataAccessLayer.js')
-// const { checkEmail } = require('./DataAccessLayer.js')
+const { checkEmail } = require('./DataAccessLayer.js')
 // const { createObject } = require('./DataAccessLayer.js')
 const { createListObj } = require('./DataAccessLayer.js')
 const { createTaskObj } = require('./DataAccessLayer.js')
@@ -102,7 +103,6 @@ const { deleteTaskObjDone } = require('./DataAccessLayer.js')
 const { deleteTaskObjSelected } = require('./DataAccessLayer.js')
 const { deleteListObj } = require('./DataAccessLayer.js')
 const { getSalt } = require('./DataAccessLayer.js')
-// const { logGoogle } = require('./DataAccessLayer.js')
 
 
 app.get('/connection', async (req, res) => {
@@ -118,9 +118,11 @@ app.get('/auth/google/callback',
         // console.log(res.user._id)
         return res
         .status(200)
-        .cookie('jwt', jwt.sign({exp: Math.floor(Date.now() / 1000) + (60), data: req.user._id}, process.env.signKey), {
-          httpOnly: true
+        .cookie('jwt', jwt.sign({exp: Math.floor(Date.now() / 1000) + (60 * 60), data: req.user._id}, process.env.signKey), {
+            expires: new Date(Date.now() + (signInTime)),
+            httpOnly: false
         })
+
         .redirect(`${process.env.FRONT_END_URL}/Select`)
 })
 
@@ -136,11 +138,7 @@ app.get('/users-emails', async (req, res) => {
     const email = req.query.email
     console.log(email)
     const clear = await checkEmail(email)
-    if(clear === err){
-        res.send(true)
-    } else {
-    res.send(false)
-    }
+    res.send(clear)
 })
 
 app.get('/users-check', async (req, res) => {
@@ -195,7 +193,7 @@ app.post('/lists', async (req, res) => {
         ){
             res.send('Too much data, keep list fields within 50, 250, and 50 characters respectively')
         }else{
-    const user = jwt.verify(req.query.user, process.env.postListKey)
+    const user = jwt.verify(req.query.user, process.env.postListKey).data
     const newObject = req.body
     const list = await createListObj(user, newObject)
     console.log('Object Created')
@@ -211,7 +209,7 @@ app.post('/tasks', async (req, res) => {
         ){
             res.send('Too much data, keep task fields within 50, 250, and 50 characters respectively')
         }else{
-    const user = jwt.verify(req.query.user, process.env.postTaskKey)
+    const user = jwt.verify(req.query.user, process.env.postTaskKey).data
     const list = req.query.list
     const newObject = req.body
     const task = await createTaskObj(user, list, newObject)
@@ -221,7 +219,7 @@ app.post('/tasks', async (req, res) => {
 })
 
 app.get('/lists', async (req, res) => {
-    const user = jwt.verify(req.query.user, process.env.getListKey)
+    const user = jwt.verify(req.query.user, process.env.getListKey).data
     console.log(user)
     const lists = await readListObjects(user)
     console.log('A list GET Request was made');
@@ -229,7 +227,9 @@ app.get('/lists', async (req, res) => {
 })
 
 app.get('/tasks', async (req, res) =>  {
-    const user = jwt.verify(req.query.user, process.env.getTaskKey)
+    console.log(req.query.user)
+    const user = jwt.verify(req.query.user, process.env.getTaskKey).data
+    console.log(user)
     const list = req.query.list
     const index = req.query.index
     const tasks = await readTaskObjects(user, list, index)
@@ -244,7 +244,7 @@ app.patch('/lists', async(req, res) => {
         ){
             res.send('Too much data, keep list fields within 50, 250, and 50 characters respectively')
         }else{
-    const user = jwt.verify(req.query.user, process.env.patchListKey)
+    const user = jwt.verify(req.query.user, process.env.patchListKey).data
     const id = req.query.id
     const list = req.body
     const update = await updateListObj(user, id, list)
@@ -253,7 +253,7 @@ app.patch('/lists', async(req, res) => {
 })
 
 app.delete('/lists', async(req, res) => {
-    const user = jwt.verify(req.query.user, process.env.deleteListKey)
+    const user = jwt.verify(req.query.user, process.env.deleteListKey).data
     const list = req.query.list
     const update = await deleteListObj(user, list)
     res.send(update)
@@ -267,7 +267,7 @@ app.patch('/tasks', async(req, res) => {
         ){
             res.send('Too much data, keep task fields within 50, 250, and 50 characters respectively')
         }else{
-    const user = jwt.verify(req.query.user, process.env.patchTaskKey)
+    const user = jwt.verify(req.query.user, process.env.patchTaskKey).data
     const id = req.query.id
     const listname = req.query.list
     const task = req.body
@@ -277,7 +277,7 @@ app.patch('/tasks', async(req, res) => {
 })
 
 app.patch('/tasks-complete', async(req, res) => {
-    const user = jwt.verify(req.query.user, process.env.patchCompleteKey)
+    const user = jwt.verify(req.query.user, process.env.patchCompleteKey).data
     const id = req.query.id
     const listname = req.query.list
     const task = req.query.complete
@@ -286,7 +286,7 @@ app.patch('/tasks-complete', async(req, res) => {
 })
 
 app.delete('/tasks', async(req, res) => {
-    const user = jwt.verify(req.query.user, process.env.deleteTaskKey)
+    const user = jwt.verify(req.query.user, process.env.deleteTaskKey).data
     const id = req.query.id
     const listname = req.query.list
     const update = await deleteTaskObj(user, listname, id)
@@ -294,14 +294,14 @@ app.delete('/tasks', async(req, res) => {
 })
 
 app.delete('/tasks-complete', async(req, res) => {
-    const user = jwt.verify(req.query.user, process.env.deleteCompleteKey)
+    const user = jwt.verify(req.query.user, process.env.deleteCompleteKey).data
     const listname = req.query.list
     const update = await deleteTaskObjDone(user, listname)
     res.send(update)
 })
 
 app.delete('/tasks-selected', async(req, res) => {
-    const user = jwt.verify(req.query.user, process.env.deleteSelectKey)
+    const user = jwt.verify(req.query.user, process.env.deleteSelectKey).data
     const listname = req.query.list
     const namesArray = req.query.names
     const update = await deleteTaskObjSelected(user, listname, namesArray)

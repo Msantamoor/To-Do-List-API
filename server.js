@@ -119,11 +119,10 @@ app.get('/auth/google/callback',
         return res
         .status(200)
         .cookie('jwt', jwt.sign({exp: Math.floor(Date.now() / 1000) + (60 * 60), data: req.user._id}, process.env.signKey), {
-            expires: new Date(Date.now() + (signInTime)),
-            httpOnly: false,
             domain: process.env.FRONT_END_URL,
-            path:'/'
-
+            path:'/',
+            expires: new Date(Date.now() + (signInTime)),
+            httpOnly: false
         })
 
         .redirect(`${process.env.FRONT_END_URL}/Select`)

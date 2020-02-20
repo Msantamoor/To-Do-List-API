@@ -55,6 +55,7 @@ const app = express();
 
 const PORT = process.env.PORT || 3307;
 
+app.use(cors());
 
 passport.use(new GoogleStrategy(strategyOptions, verifyCallback))
   
@@ -67,7 +68,7 @@ app.get('/auth/google',
   })
 )
 
-app.use(cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'react')));

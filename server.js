@@ -311,4 +311,8 @@ app.delete('/tasks-selected', async(req, res) => {
     res.send(update)
 })
 
+app.get('/*', function(req, res){
+    res.sendFile(path.join(__dirname, './index.html', '/'))
+})
+
 app.listen(PORT, () => console.log(`Server is up on port ${PORT}.`));

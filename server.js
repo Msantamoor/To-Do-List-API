@@ -113,7 +113,7 @@ app.get('/connection', async (req, res) => {
 
   
 app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: `${process.env.FRONT_END_URL}/` }), async (req, res) => {
+    passport.authenticate('google', { failureRedirect: `${process.env.FRONT_END_URL}/CUForm` }), async (req, res) => {
         console.log(res)
         console.log(req.user)
         // console.log(res.user._id)

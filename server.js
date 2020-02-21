@@ -119,8 +119,8 @@ app.get('/auth/google/callback',
         // console.log(res.user._id)
         return res
         .status(200)
-        .cookie('jwt', jwt.sign(req.user._id, process.env.signKey), {
-            domain: `${process.env.COOKIE_URL}`,
+        .cookie('jwt', jwt.sign({ data: req.user._id }, process.env.signKey), {
+            // domain: `${process.env.COOKIE_URL}`,
             path:'/',
             expires: new Date(Date.now() + (signInTime)),
             httpOnly: false

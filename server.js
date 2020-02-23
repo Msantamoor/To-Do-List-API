@@ -125,6 +125,7 @@ app.get('/auth/google/callback',
             expires: new Date(Date.now() + (signInTime)),
             httpOnly: false
         })
+        .withCredentials = true
         .redirect(`${process.env.FRONT_END_URL}/Select`)
 })
 

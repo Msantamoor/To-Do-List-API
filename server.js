@@ -66,7 +66,7 @@ app.get('/auth/google',
           'https://www.googleapis.com/auth/userinfo.email'
       ]
   })
-)
+).withCredentials = true
 
 
 app.use(express.json());
@@ -119,13 +119,12 @@ app.get('/auth/google/callback',
         // console.log(res.user._id)
         return res
         .status(200)
-        .cookie('jwt', (jwt.sign({ data: req.user._id }, process.env.signKey)), {
+        .cookie('jwt', '1' (jwt.sign({ data: req.user._id }, process.env.signKey)), {
             // domain: `${process.env.COOKIE_URL}`,
             // path:'/',
             expires: new Date(Date.now() + (signInTime)),
             httpOnly: false
         })
-        .withCredentials = true
         .redirect(`${process.env.FRONT_END_URL}/Select`)
 })
 

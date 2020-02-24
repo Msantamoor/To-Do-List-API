@@ -69,7 +69,6 @@ app.get('/auth/google',
     })
 //   res.send()
 )
-.withCredentials = true
 
 
 
@@ -124,12 +123,13 @@ app.get('/auth/google/callback',
         return res
         .status(200)
         .cookie('jwt', (jwt.sign({ data: req.user._id }, process.env.signKey)), {
-            domain: `${process.env.COOKIE_URL}`,
-            path:'/',
+            // domain: `${process.env.COOKIE_URL}`,
+            // path:'/',
             expires: new Date(Date.now() + (signInTime)),
             httpOnly: false
         })
-        .redirect(`${process.env.FRONT_END_URL}/Select`)
+        .send(jwt.sign({data: sign._id}, process.env.signKey))
+        // .redirect(`${process.env.FRONT_END_URL}/Select`)
 })
 
 app.get('/users-names', async (req, res) => {

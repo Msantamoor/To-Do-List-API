@@ -59,14 +59,16 @@ app.use(cors());
 
 passport.use(new GoogleStrategy(strategyOptions, verifyCallback))
   
-app.get('/auth/google',
+app.get('/auth/google', async (req, res) =>{
   passport.authenticate('google', {
       scope: [
           'https://www.googleapis.com/auth/userinfo.profile',
           'https://www.googleapis.com/auth/userinfo.email'
       ]
   })
-).withCredentials = true
+//   res.send()
+}).withCredentials = true
+
 
 
 app.use(express.json());
@@ -116,12 +118,12 @@ app.get('/auth/google/callback',
     passport.authenticate('google', { failureRedirect: `${process.env.FRONT_END_URL}/CUForm` }), async (req, res) => {
         console.log(res)
         console.log(req.user)
-        // console.log(res.user._id)
+        console.log(res.user._id)
         return res
         .status(200)
         .cookie('jwt', (jwt.sign({ data: req.user._id }, process.env.signKey)), {
-            // domain: `${process.env.COOKIE_URL}`,
-            // path:'/',
+            domain: `${process.env.COOKIE_URL}`,
+            path:'/',
             expires: new Date(Date.now() + (signInTime)),
             httpOnly: false
         })

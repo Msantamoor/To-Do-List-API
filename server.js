@@ -132,6 +132,15 @@ app.get('/auth/google/callback',
         // .redirect(`${process.env.FRONT_END_URL}/Select`)
 })
 
+app.get('/users-email-reset', async (req, res) => {
+    const email = req.query.email
+    console.log(email)
+    const clear = await checkEmail(email)
+    console.log(clear)
+    res.send(clear)
+
+})
+
 app.get('/users-names', async (req, res) => {
     const username = req.query.username
     console.log(username)

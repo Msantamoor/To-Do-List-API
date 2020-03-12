@@ -13,6 +13,25 @@ require('dotenv').config()
 require('passport')
 require('./mongo.js')
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: `${process.env.EMAIL_ADDRESS}`,
+        pass: `${process.env.EMAIL_PASSWORD}`,
+    },
+})
+
+const mailOptions = {
+    from: `${process.env.EMAIL_ADDRESS}`,
+    to: `${user.email}`,
+    subject: `Password Reset Link`,
+    text:
+    `You are receiving this email because you (or somone else) has requested to reset the password on you ToDoList account.\n\n` +
+    `Please use the following link, or paste this into your browser to complete the process.\n\n` +
+    
+}
+
+
 const strategyOptions = {
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -138,6 +157,8 @@ app.get('/users-email-reset', async (req, res) => {
     const clear = await checkEmail(email)
     console.log(clear)
     res.send(clear)
+
+
 
 })
 

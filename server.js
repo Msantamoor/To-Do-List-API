@@ -9,27 +9,13 @@ const GoogleStrategy = passportGoogle.OAuth2Strategy
 const { to } = require('await-to-js')
 const { getEmail, createObject } = require('./DataAccessLayer.js')
 const signInTime = ((1000 * 60) * 60)
+const nodemailer = require('nodemailer')
+
 require('dotenv').config()
 require('passport')
 require('./mongo.js')
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: `${process.env.EMAIL_ADDRESS}`,
-        pass: `${process.env.EMAIL_PASSWORD}`,
-    },
-})
 
-const mailOptions = {
-    from: `${process.env.EMAIL_ADDRESS}`,
-    to: `${user.email}`,
-    subject: `Password Reset Link`,
-    text:
-    `You are receiving this email because you (or somone else) has requested to reset the password on you ToDoList account.\n\n` +
-    `Please use the following link, or paste this into your browser to complete the process.\n\n` +
-    
-}
 
 
 const strategyOptions = {
@@ -154,10 +140,37 @@ app.get('/auth/google/callback',
 app.get('/users-email-reset', async (req, res) => {
     const email = req.query.email
     console.log(email)
-    const clear = await checkEmail(email)
-    console.log(clear)
-    res.send(clear)
+    const user = await getEmail(email)
+    console.log(user._id)
+    console.log(user.email)
 
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: `${process.env.EMAIL_ADDRESS}`,
+            pass: `${process.env.EMAIL_PASSWORD}`,
+        },
+    })
+    
+    const mailOptions = {
+        from: `${process.env.EMAIL_ADDRESS}`,
+        to: `${email}`,
+        subject: `Password Reset Link`,
+        text:
+        `You are receiving this email because you (or somone else) has requested to reset the password on you ToDoList account.\n\n` +
+        `Please use the following link, or paste this into your browser to complete the process.\n\n` +
+        `http://localhost:3306/reset/${user._id}`
+        
+    }
+
+    transporter.sendMail(mailOptions, (err, response) => {
+        if (err) {
+            console.error('There was a sending error: ', err);
+        } else {
+            console.log('Successful', response)
+            res.status(200).json('reovery email sent')
+        }
+    })
 
 
 })

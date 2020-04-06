@@ -600,6 +600,31 @@ const checkUser = (profileID) => {
     return iou;
 }
 
+const changePass = (id, pass) => {
+    let iou = new Promise((resolve, reject) => {
+        MongoClient.connect(url, settings, function (err, client) {
+            if(err) {
+                reject(err)
+            } else {
+                console.log('Connected to server to change password')
+                const db = client.db(dbName)
+                const collection = db.collection('ToDoObjects')
+                collection.updateOne({_id: ObjectId(id)}
+                
+                ).toArray(function (err, docs) {
+                    if (err){
+                        resolve(false)
+                        reject(err)
+                    } else {
+                        client.close()
+                        resolve(true)
+                    }
+                })
+            }
+        })
+    })
+}
+
 
 
 

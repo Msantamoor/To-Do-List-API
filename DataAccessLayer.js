@@ -609,12 +609,22 @@ const changePass = (id, pass) => {
                 console.log('Connected to server to change password')
                 const db = client.db(dbName)
                 const collection = db.collection('ToDoObjects')
-                collection.updateOne({_id: ObjectId(id)}
-                
+
+                const pepper = sha256(this.state.username)
+                const salt = bcrypt.genSaltSync(10);
+                const sp = pepper + sha256(this.state.password)
+                console.log(sp)
+                const hash = bcrypt.hashSync(sp, salt)
+                console.log(hash)
+        
+                collection.updateOne({_id: ObjectId(id)},
+                { password: jwt.sign(hash, process.env.REACT_APP_passKey),
+                    salt: jwt.sign(salt, process.env.REACT_APP_inSaltKey)}
                 ).toArray(function (err, docs) {
                     if (err){
                         resolve(false)
                         reject(err)
+
                     } else {
                         client.close()
                         resolve(true)

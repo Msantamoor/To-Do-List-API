@@ -159,7 +159,7 @@ app.get('/users-email-reset', async (req, res) => {
         text:
         `You are receiving this email because you (or somone else) has requested to reset the password on you ToDoList account.\n\n` +
         `Please use the following link, or paste this into your browser to complete the process.\n\n` +
-        `http://localhost:3306/reset?user=${user._id}`
+        `http://localhost:3305/RPass?user=${user._id}`
         
     }
 
@@ -179,7 +179,7 @@ app.patch('/user-pass-change', async (req, res) => {
 const id = req.query.user
 const pass = req.query.new
 const change = await changePass(id, pass)
-
+res.send(change)
 })
 
 app.get('/users-names', async (req, res) => {

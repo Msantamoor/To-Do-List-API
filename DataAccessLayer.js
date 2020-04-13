@@ -1,6 +1,8 @@
 const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require("mongodb").ObjectId;
 const jwt = require('jsonwebtoken');
+const sha256 = require('sha256')
+const bcrypt = require('bcryptjs');
 
 require('dotenv').config()
 
@@ -600,7 +602,7 @@ const checkUser = (profileID) => {
     return iou;
 }
 
-const changePass = (id, pass) => {
+const changePass = (id, pass, salt) => {
     let iou = new Promise((resolve, reject) => {
         MongoClient.connect(url, settings, function (err, client) {
             if(err) {
@@ -610,18 +612,12 @@ const changePass = (id, pass) => {
                 const db = client.db(dbName)
                 const collection = db.collection('ToDoObjects')
 
-                const pepper = sha256(this.state.username)
-                const salt = bcrypt.genSaltSync(10);
-                const sp = pepper + sha256(this.state.password)
-                console.log(sp)
-                const hash = bcrypt.hashSync(sp, salt)
-                console.log(hash)
-        
                 collection.updateOne({_id: ObjectId(id)},
-                { password: jwt.sign(hash, process.env.REACT_APP_passKey),
-                    salt: jwt.sign(salt, process.env.REACT_APP_inSaltKey)}
-                ).toArray(function (err, docs) {
+                { password: pass,
+                    salt: salt},
+                function (err, docs) {
                     if (err){
+                        client.close()
                         resolve(false)
                         reject(err)
 
@@ -638,4 +634,4 @@ const changePass = (id, pass) => {
 
 
 
-module.exports = { testConnection, getEmail, checkUser, getSalt, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail };
+module.exports = { testConnection, getEmail, checkUser, getSalt, deleteListObj, deleteTaskObjSelected, deleteTaskObjDone, deleteTaskObj, updateTaskObjDone, updateTaskObj, updateListObj, readTaskObjects, readListObjects, createObject, createListObj, createTaskObj, checkPass, checkUse, checkEmail, changePass };

@@ -112,6 +112,7 @@ const { deleteTaskObjDone } = require('./DataAccessLayer.js')
 const { deleteTaskObjSelected } = require('./DataAccessLayer.js')
 const { deleteListObj } = require('./DataAccessLayer.js')
 const { getSalt } = require('./DataAccessLayer.js')
+const { changePass } = require('./DataAccessLayer.js')
 
 
 app.get('/connection', async (req, res) => {
@@ -159,7 +160,7 @@ app.get('/users-email-reset', async (req, res) => {
         text:
         `You are receiving this email because you (or somone else) has requested to reset the password on you ToDoList account.\n\n` +
         `Please use the following link, or paste this into your browser to complete the process.\n\n` +
-        `http://localhost:3305/RPass?user=${user._id}`
+        `http://localhost:3305/RPass?id=${user._id}&username=${user.username}`
         
     }
 
@@ -175,10 +176,14 @@ app.get('/users-email-reset', async (req, res) => {
 
 })
 
-app.patch('/user-pass-change', async (req, res) => {
-const id = req.query.user
-const pass = req.query.new
-const change = await changePass(id, pass)
+app.patch('/users-pass-change', async (req, res) => {
+const salt = bcrypt.genSaltSync(10);
+console.log(salt)
+const hash = bcrypt.hashSync(jwt.verify(req.query.new, process.env.passKey), salt);
+
+const id = jwt.verify(req.query.id, process.env.changeKey)
+const inSalt = jwt.verify(req.query.salt, process.env.inSaltKey)
+const change = await changePass(id, hash, inSalt)
 res.send(change)
 })
 

@@ -609,26 +609,29 @@ const changePass = (id, pass, salt) => {
                 reject(err)
             } else {
                 console.log('Connected to server to change password')
+                console.log(id)
+                console.log(pass)
+                console.log(salt)
                 const db = client.db(dbName)
                 const collection = db.collection('ToDoObjects')
 
                 collection.updateOne({_id: ObjectId(id)},
-                { password: pass,
-                    salt: salt},
+                { $set: {password: pass,
+                    salt: salt}}),
                 function (err, docs) {
                     if (err){
                         client.close()
-                        resolve(false)
                         reject(err)
 
                     } else {
                         client.close()
                         resolve(true)
                     }
-                })
+                }
             }
         })
     })
+    return iou
 }
 
 

@@ -179,11 +179,12 @@ app.get('/users-email-reset', async (req, res) => {
 app.patch('/users-pass-change', async (req, res) => {
 const salt = bcrypt.genSaltSync(10);
 console.log(salt)
-const hash = bcrypt.hashSync(jwt.verify(req.query.new, process.env.passKey), salt);
+const hash = bcrypt.hashSync(jwt.verify(req.query.new, process.env.passKey), salt)
 
 const id = jwt.verify(req.query.id, process.env.changeKey)
 const inSalt = jwt.verify(req.query.salt, process.env.inSaltKey)
 const change = await changePass(id, hash, inSalt)
+console.log(change)
 res.send(change)
 })
 

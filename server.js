@@ -185,7 +185,7 @@ const id = jwt.verify(req.query.id, process.env.changeKey)
 const inSalt = jwt.verify(req.query.salt, process.env.inSaltKey)
 const change = await changePass(id, hash, inSalt)
 console.log(change)
-res.send(change)
+res.send("Password Change Successful")
 })
 
 app.get('/users-names', async (req, res) => {

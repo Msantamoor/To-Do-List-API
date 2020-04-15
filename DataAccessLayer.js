@@ -617,17 +617,16 @@ const changePass = (id, pass, salt) => {
 
                 collection.updateOne({_id: ObjectId(id)},
                 { $set: {password: pass,
-                    salt: salt}}),
-                function (err, docs) {
-                    if (err){
-                        client.close()
+                    salt: salt}},
+                function (err, result) {
+                    if (err) {
                         reject(err)
-
-                    } else {
-                        client.close()
-                        resolve(true)
                     }
-                }
+                    else {
+                         client.close();
+                         resolve(result);
+                    }
+                })
             }
         })
     })

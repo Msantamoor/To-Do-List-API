@@ -160,7 +160,7 @@ app.get('/users-email-reset', async (req, res) => {
         text:
         `You are receiving this email because you (or somone else) has requested to reset the password on you ToDoList account.\n\n` +
         `Please use the following link, or paste this into your browser to complete the process.\n\n` +
-        `http://localhost:3305/RPass?id=${user._id}&username=${user.username}`
+        `${process.env.FRONT_END_URL}/RPass?id=${user._id}&username=${user.username}`
         
     }
 
